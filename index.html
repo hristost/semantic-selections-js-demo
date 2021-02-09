@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <script src="./nodes.js"></script>
+  <script src="./input.js"></script>
+  <script src="./main.js"></script>
+<style type="text/css">
+::selection {
+  background: #0077ff; /* Gecko Browsers */
+  color: #ffffff;
+}
+::-moz-selection {
+  background: #0077ff; /* Gecko Browsers */
+  color: #ffffff;
+}
+textarea {
+  width:100%;
+
+}
+
+html { height: 100%; }
+body {
+  height: 100%;
+  display: grid;
+  justify-content: center;
+  align-content: center;
+}
+.center {
+  display: inline-block;
+  height: 100%;
+}
+
+
+</style>
+</head>
+<body onLoad="main()">
+  <div class="center">
+    <textarea id="textField" spellcheck="false" rows="10" cols="30">The cat was playing in the garden.</textarea>
+    <hr/>
+    <ul>
+      <li> The text field is non-editable. </li>
+      <li> Use the mouse to make selections as usual </li>
+      <li> Press the left and right arrows to select adjacent constituents. </li>
+      <li> Press the up arrow to expand selection to the nearest constituent. </li>
+      <li> <a href="http://users.uoa.gr/~nektar/arts/tributes/antoine_de_saint-exupery_le_petit_prince/the_little_prince.htm"> Text source </a> The text presented here might have extra whitespace and also missing whitespace.</li>`
+    </ul>
+  </div>
+</body>
+</html>
