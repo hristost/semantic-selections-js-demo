@@ -69,7 +69,6 @@ class Range {
       return null
     }
     let adjacentIdx = this.index + direction
-    console.log(this.index, adjacentIdx, parent.children.length)
     if (0 <= adjacentIdx && adjacentIdx < parent.children.length) {
       return parent.children[adjacentIdx]
     } else if(parent) {
