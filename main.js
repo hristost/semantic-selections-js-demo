@@ -1,15 +1,57 @@
 /// The depest selection that has been made inside the current node, used for backtracking
-deepestSelection = null
-var level = 0;
+var deepestSelection = null
+var level = 100;
 var textarea;
 var tree;
+
+/// How many units the user has scrolled. Reset whenever a threshold is exceeded
+var scrollWheelDelta = 0;
+
+/// Whether mouse mode is active. Enabled by pressing the middle mouse button
+var mouseMode = false;
 
 function main() {
   tree = new Range(littleprince, 0, 0, 0, null);
 
   textarea = document.getElementById('textField');
-  textarea.value = tree.string;
+  textarea.innerHTML = tree.string;
 
+
+  textarea.addEventListener('mousedown', function(e) {
+    if (e.button == 1) {
+    e.preventDefault();
+      mouseMode = true;
+      textarea.focus();
+      node = nodeAtMousePosition(e.clientX, e.clientY)
+      if (node) textarea.setSelectionRange(node.rangeStart, node.rangeEnd)
+    }
+  })
+  textarea.addEventListener('mouseup', function(e) {
+    if (e.button == 1) {
+    e.preventDefault();
+      mouseMode = false;
+    }
+  })
+  textarea.addEventListener('wheel', e => {
+    if (mouseMode) e.preventDefault();
+  });
+  textarea.addEventListener('wheel', e => {
+    if (!mouseMode) return;
+    e.preventDefault();
+    scrollWheelDelta += e.deltaY;
+    if (Math.abs(scrollWheelDelta) >= 1) {
+        scrollWheelDelta = 0;
+        level += Math.sign(e.deltaY);
+        level = Math.max(1, level);
+    }
+    node = nodeAtMousePosition(e.clientX, e.clientY)
+    if (node) textarea.setSelectionRange(node.rangeStart, node.rangeEnd)
+  });
+  textarea.addEventListener('mousemove', e => {
+    if (!mouseMode) return;
+    node = nodeAtMousePosition(e.offsetX, e.offsetY)
+    if (node) textarea.setSelectionRange(node.rangeStart, node.rangeEnd)
+  });
   textarea.addEventListener('select', handleSelection)
   textarea.addEventListener('keydown', function(e) {
     // Which keys we pass to the text field
@@ -17,6 +59,8 @@ function main() {
     if (!passthrough.includes(e.key)) {
       e.preventDefault();
     }
+    console.log(e.key, e.key == "Tab");
+    if (e.key == "Tab") mouseMode = true;
 
     let start = textarea.selectionStart;
     let end = textarea.selectionEnd;
@@ -29,9 +73,50 @@ function main() {
 
     if (node) textarea.setSelectionRange(node.rangeStart, node.rangeEnd)
   });
+  textarea.addEventListener('keyup', function(e) {
+    const passthrough = []
+    if (!passthrough.includes(e.key)) {
+      e.preventDefault();
+    }
+    if (e.key == "Tab") mouseMode = false;
+  });
+
 
 }
 
+
+/// Find the character offset of the mouse position in the given div
+function getOffsetAtPoint(elem, x, y) {
+    // https://stackoverflow.com/a/30586239
+    var range, textNode, offset;
+    if (document.body.createTextRange) {
+      // Internet Explorer
+       try {
+         range = document.body.createTextRange();
+         range.moveToPoint(event.clientX, event.clientY);
+         range.select();
+         range = getTextRangeBoundaryPosition(range, true);
+      
+         textNode = range.node;
+         offset = range.offset;
+       } catch(e) {
+         
+       }
+    } else if (document.caretPositionFromPoint) {
+      // Firefox, Safari
+      // REF: https://developer.mozilla.org/en-US/docs/Web/API/Document/caretPositionFromPoint
+      range = document.caretPositionFromPoint(event.clientX, event.clientY);
+      textNode = range.offsetNode;
+      offset = range.offset;
+      // Chrome
+      // REF: https://developer.mozilla.org/en-US/docs/Web/API/document/caretRangeFromPoint
+    } else if (document.caretRangeFromPoint) {
+      range = document.caretRangeFromPoint(event.clientX, event.clientY);
+      textNode = range.startContainer;
+      offset = range.startOffset;
+    }
+    return offset
+} 
 /// Called whenever the selection updates. Set the deepest selection if necessary
 function handleSelection(e) {
   let start = textarea.selectionStart;
@@ -88,4 +173,24 @@ function shiftSelection(start, end, direction) {
   }
 
   return node
+}
+
+function nodeAtMousePosition(x, y) {
+    offset = getOffsetAtPoint(textarea, x, y);
+    offset = Math.min(offset, tree.string.length);
+
+    if (tree.string[offset] == " ") return null;
+	origLevel = level
+    node = expandSelection(offset, offset)
+    level = origLevel
+	if (node) node = expandToLevel(node, level);
+	level = Math.min(level, node.level);
+	return node;
+}
+
+/// Find a parent consitutent of the node at the given level.
+/// If the target level is deeper than the node, the node itself will be returned
+function expandToLevel(node, level) {
+    while (node.level > level && node.parent) node = node.parent;
+    return node;
 }
