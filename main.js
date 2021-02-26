@@ -19,8 +19,9 @@ function main() {
 
   textarea.addEventListener('mousedown', function(e) {
     if (e.button == 1) {
-    e.preventDefault();
+      e.preventDefault();
       mouseMode = true;
+      level = 100;
       textarea.focus();
       node = nodeAtMousePosition(e.clientX, e.clientY)
       if (node) textarea.setSelectionRange(node.rangeStart, node.rangeEnd)
@@ -41,7 +42,7 @@ function main() {
     scrollWheelDelta += e.deltaY;
     if (Math.abs(scrollWheelDelta) >= 1) {
         scrollWheelDelta = 0;
-        level += Math.sign(e.deltaY);
+        level -= Math.sign(e.deltaY);
         level = Math.max(1, level);
     }
     node = nodeAtMousePosition(e.clientX, e.clientY)
@@ -54,9 +55,9 @@ function main() {
   });
   textarea.addEventListener('select', handleSelection)
   textarea.addEventListener('keydown', function(e) {
-    // Which keys we pass to the text field
-    const passthrough = []
-    if (!passthrough.includes(e.key)) {
+    // Which keys should not use the default behaviour
+    const blocked = ['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+    if (blocked.includes(e.key)) {
       e.preventDefault();
     }
     console.log(e.key, e.key == "Tab");
@@ -74,10 +75,6 @@ function main() {
     if (node) textarea.setSelectionRange(node.rangeStart, node.rangeEnd)
   });
   textarea.addEventListener('keyup', function(e) {
-    const passthrough = []
-    if (!passthrough.includes(e.key)) {
-      e.preventDefault();
-    }
     if (e.key == "Tab") mouseMode = false;
   });
 
